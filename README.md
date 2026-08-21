@@ -44,6 +44,18 @@ Our plagiarism checker helps ensure originality and proper citation in your work
     -   Use Tailwind UI cards or tables for clarity.
 
 
+## Structure
+
+```
+/api/news.js
+/public/index.html
+/public/styles.css
+package.json
+vercel.json   (optional)
+
+```
+
+
 ## License
 
 This project is licensed under the MIT License. See the  [LICENSE](https://github.com/sethuaung/Plagiarism-Checker/blob/main/LICENSE)  file for details.
