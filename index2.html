@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="keywords" content="Felixent-Edu">
+    <meta name="description" content="The plagiarism checker that uses Tailwind UI for the frontend and integrates the NewsDATA.io API for content comparison">
+    <meta name="author" content="Mosquito">
+    <link href="favicon.ico" rel="icon">
+  <title>Plagiarism Checker (NewsData.io)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    .score-svg { width: 112px; height: 112px; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <!-- Navigation -->
+  <nav class="bg-blue-700 text-white shadow">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-6">
+          <a href="#" onclick="showSection('home')" class="py-2 px-3 rounded hover:bg-blue-600">Home</a>
+          <a href="#" onclick="showSection('tools1')" class="py-2 px-3 rounded hover:bg-blue-600">Input</a>
+          <a href="#" onclick="showSection('tools2')" class="py-2 px-3 rounded hover:bg-blue-600">Upload</a>
+        </div>
+        <div class="text-sm opacity-90">Plagiarism Checker</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main container -->
+  <main class="max-w-4xl mx-auto p-6">
+    <!-- Home -->
+    <section id="home" class="block bg-white rounded-lg shadow p-6">
+      <h2 class="text-2xl font-bold text-blue-700 mb-3">About Plagiarism</h2>
+
+      <!-- Short blurb -->
+      <div class="mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">Quick Summary</h3>
+        <p class="text-gray-700">
+          Plagiarism is using another person’s words or ideas without proper attribution. It risks academic, legal,
+          and reputational harm. Use quick text checks or full-document PDF scans to detect overlaps and correct citations.
+        </p>
+      </div>
+
+      <!-- Medium summary -->
+      <div class="mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">About</h3>
+        <p class="text-gray-700">
+          Plagiarism occurs when someone presents another’s language, ideas, or expressions as their own without credit.
+          Institutions worldwide rely on automated detection plus human review to identify problematic overlaps. Our tools
+          let you paste text for a fast check or upload PDFs for page‑level analysis, returning matched sources, a
+          visual plagiarism score, and per‑section highlights to guide corrections.
+        </p>
+      </div>
+
+      <!-- Detailed explanation -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-gray-800">Global Context and Implications</h3>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+          <li><strong>Scope:</strong> Affects education, research, publishing, and professional work worldwide.</li>
+          <li><strong>Detection:</strong> Combines automated scanning of web and academic sources with human review.</li>
+          <li><strong>Risks:</strong> Academic penalties, retractions, legal exposure, and reputational damage.</li>
+          <li><strong>Trends:</strong> Growing use of automated tools, broader source coverage (web, paywalled content, repositories).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Tools-1: User Input -->
+    <section id="tools1" class="hidden mt-6 bg-white rounded-lg shadow p-6">
+      <h2 class="text-2xl font-bold text-blue-700 mb-4">User Input Checker — Features</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+        <ul class="space-y-2">
+          <li><strong>Text input area</strong> — paste or type content for instant checks.</li>
+          <li><strong>Chunking & sampling</strong> — splits long text into searchable segments for better coverage.</li>
+          <li><strong>Search integration</strong> — queries NewsData.io for matching news content.</li>
+          <li><strong>Similarity scoring</strong> — visual percentage meter and numeric score.</li>
+        </ul>
+        <ul class="space-y-2">
+          <li><strong>Matched snippets</strong> — source titles, snippets, and links with highlighted overlaps.</li>
+          <li><strong>Confidence flags</strong> — mark likely false positives (common phrases, citations).</li>
+          <li><strong>Exportable report</strong> — downloadable summary of matches and scores.</li>
+          <li><strong>Privacy controls</strong> — options to avoid storing submitted text.</li>
+        </ul>
+      </div>
+
+      <p class="mt-3 text-sm text-gray-600">
+        UX tips: show a quick sample scan first, then offer a deeper scan; allow users to mark legitimate quotes to reduce false positives.
+      </p>
+
+      <!-- Interactive area for User Input Checker -->
+      <div class="mt-6 border-t pt-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Paste text to check</label>
+        <textarea id="inputText" class="w-full h-40 p-4 border rounded-lg focus:ring-2 focus:ring-blue-200"
+          placeholder="Paste your text here..."></textarea>
+
+        <div class="flex items-center gap-4 mt-4">
+          <button id="checkTextBtn" onclick="checkPlagiarism()" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Check Plagiarism
+          </button>
+          <button onclick="clearInput()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Clear</button>
+        </div>
+
+        <div id="scoreMeter" class="mt-6 flex justify-center"></div>
+        <div id="results" class="mt-6 space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- Tools-2: PDF Upload -->
+    <section id="tools2" class="hidden mt-6 bg-white rounded-lg shadow p-6">
+      <h2 class="text-2xl font-bold text-blue-700 mb-4">PDF Upload Checker — Features</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+        <ul class="space-y-2">
+          <li><strong>PDF parsing & OCR</strong> — extract selectable text and OCR scanned pages.</li>
+          <li><strong>Page-level progress</strong> — progress bar and per-page parsing status.</li>
+          <li><strong>Chunked document search</strong> — query each page/paragraph for matches.</li>
+          <li><strong>Per-page scoring</strong> — show which pages have the highest overlap.</li>
+        </ul>
+        <ul class="space-y-2">
+          <li><strong>Source mapping</strong> — map matched snippets back to page numbers and ranges.</li>
+          <li><strong>Annotated reports</strong> — downloadable annotated summary or report with flagged passages.</li>
+          <li><strong>OCR confidence</strong> — surface low-confidence text for user correction before final check.</li>
+          <li><strong>Security</strong> — temporary processing and optional deletion of uploaded files.</li>
+        </ul>
+      </div>
+
+      <p class="mt-3 text-sm text-gray-600">
+        UX tips: allow excluding bibliographies or quoted blocks, and provide per-page drill-down for fast remediation.
+      </p>
+
+      <!-- Interactive area for PDF Upload Checker -->
+      <div class="mt-6 border-t pt-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Select a PDF file</label>
+        <input id="pdfUpload" type="file" accept="application/pdf" class="block w-full text-gray-700 border rounded-lg p-2" />
+
+        <div class="flex items-center gap-4 mt-4">
+          <button id="uploadBtn" onclick="checkPDF()" class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            Upload & Check
+          </button>
+          <button onclick="clearPDF()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Clear</button>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressContainer" class="hidden mt-6">
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div id="progressBar" class="bg-blue-600 h-4 rounded-full text-xs text-white text-center"></div>
+          </div>
+          <p id="progressText" class="mt-2 text-gray-700"></p>
+        </div>
+
+        <div id="pdfScoreMeter" class="mt-6 flex justify-center"></div>
+        <div id="pdfResults" class="mt-6 space-y-4"></div>
+      </div>
+    </section>
+  </main>
+    <footer class="text-center p-8 text-gray-600 bg-gray-200">
+      <p>Guide for Educational Purposes</p>
+      <p class_="text-xs mt-2">&copy; 2025 Felixent. All rights reserved.</p>
+    </footer>
+  <script>
+    // --- CONFIG: NewsData.io API key (user-provided) ---
+    // You provided this key in your message; it's used below.
+    const NEWSDATA_API_KEY = 'pub_0881f6141c2b42b494ef7fc7b0d59c8c';
+
+    // Section toggle
+    function showSection(id) {
+      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Clear functions
+    function clearInput() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('scoreMeter').innerHTML = '';
+    }
+    function clearPDF() {
+      document.getElementById('pdfUpload').value = '';
+      document.getElementById('pdfResults').innerHTML = '';
+      document.getElementById('pdfScoreMeter').innerHTML = '';
+      document.getElementById('progressContainer').classList.add('hidden');
+    }
+
+    // Render circular score meter (SVG)
+    function renderScoreMeter(containerId, score, labelText = 'Plagiarized') {
+      const radius = 45;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (score / 100) * circumference;
+      const color = score >= 70 ? '#dc2626' : score >= 40 ? '#f59e0b' : '#059669';
+
+      const html = `
+        <div class="flex flex-col items-center">
+          <svg class="score-svg" viewBox="0 0 112 112">
+            <defs>
+              <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="${color}" />
+                <stop offset="100%" stop-color="#3b82f6" />
+              </linearGradient>
+            </defs>
+            <g transform="translate(56,56)">
+              <circle r="${radius}" stroke="#e5e7eb" stroke-width="10" fill="none"></circle>
+              <circle r="${radius}" stroke="url(#g)" stroke-width="10" fill="none"
+                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"></circle>
+            </g>
+          </svg>
+          <div class="mt-2 text-center">
+            <div class="text-xl font-semibold text-gray-800">${score}%</div>
+            <div class="text-sm text-gray-600">${labelText}</div>
+          </div>
+        </div>
+      `;
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    // Simple helper to compute overlap score between source text and snippets
+    function computeOverlapScore(sourceText, snippets) {
+      if (!sourceText || snippets.length === 0) return 0;
+      const normalize = s => s.replace(/\s+/g, ' ').trim().toLowerCase();
+      const src = normalize(sourceText);
+      const srcWords = new Set(src.split(' ').filter(Boolean));
+      let matched = 0;
+      snippets.forEach(sn => {
+        const n = normalize(sn);
+        const words = n.split(' ').filter(Boolean);
+        let common = 0;
+        words.forEach(w => { if (srcWords.has(w)) common++; });
+        if (common > 0) matched += Math.min(common, 20);
+      });
+      const score = Math.min(100, Math.round((matched / Math.max(1, srcWords.size)) * 100));
+      return score;
+    }
+
+    // Helper: call NewsData.io search endpoint
+    // Uses: https://newsdata.io/api/1/news?apikey=KEY&q=QUERY&language=en
+    async function newsDataSearch(query) {
+      const base = 'https://newsdata.io/api/1/news';
+      const params = new URLSearchParams({
+        apikey: NEWSDATA_API_KEY,
+        q: query,
+        language: 'en'
+      });
+      const url = `${base}?${params.toString()}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('NewsData API error');
+      const data = await res.json();
+      // NewsData returns results in `results` array
+      return data.results || [];
+    }
+
+    // Tools-1: check pasted text (uses NewsData.io)
+    async function checkPlagiarism() {
+      const text = document.getElementById('inputText').value.trim();
+      const resultsEl = document.getElementById('results');
+      const scoreEl = 'scoreMeter';
+      resultsEl.innerHTML = '';
+      document.getElementById(scoreEl).innerHTML = '';
+
+      if (!text) {
+        resultsEl.innerHTML = '<p class="text-red-600">Please enter some text to check.</p>';
+        return;
+      }
+
+      // Break into chunks for better queries (first 3 chunks of ~50 words)
+      const words = text.split(/\s+/);
+      const chunks = [];
+      for (let i = 0; i < Math.min(3, Math.ceil(words.length / 50)); i++) {
+        const start = i * 50;
+        chunks.push(words.slice(start, start + 50).join(' '));
+      }
+      if (chunks.length === 0) chunks.push(words.slice(0, 50).join(' '));
+
+      const allSnippets = [];
+      const allItems = [];
+
+      try {
+        for (const q of chunks) {
+          const results = await newsDataSearch(q);
+          results.forEach(r => {
+            // NewsData fields: title, link, description, content, pubDate, source_id
+            const snippet = r.description || r.content || '';
+            allItems.push({
+              title: r.title || 'Untitled',
+              link: r.link || r.source_id || '#',
+              snippet
+            });
+            if (snippet) allSnippets.push(snippet);
+          });
+        }
+
+        if (allItems.length === 0) {
+          resultsEl.innerHTML = '<p class="text-gray-600">No matches found.</p>';
+          renderScoreMeter(scoreEl, 0, 'Plagiarized');
+          return;
+        }
+
+        const score = computeOverlapScore(text, allSnippets);
+        renderScoreMeter(scoreEl, score, 'Plagiarized');
+
+        let html = '';
+        allItems.forEach(item => {
+          html += `
+            <div class="border p-4 rounded-lg shadow-sm">
+              <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:underline">${escapeHtml(item.title)}</a>
+              <p class="text-gray-700 mt-2">${escapeHtml(item.snippet)}</p>
+              <div class="mt-2 text-xs text-gray-500">${escapeHtml(item.link)}</div>
+            </div>
+          `;
+        });
+        resultsEl.innerHTML = html;
+      } catch (err) {
+        resultsEl.innerHTML = '<p class="text-red-600">Error fetching results from NewsData.io. Check your API key and network.</p>';
+      }
+    }
+
+    // Tools-2: PDF upload, parse, and check (uses NewsData.io)
+    async function checkPDF() {
+      const file = document.getElementById('pdfUpload').files[0];
+      const resultsEl = document.getElementById('pdfResults');
+      resultsEl.innerHTML = '';
+      document.getElementById('pdfScoreMeter').innerHTML = '';
+      if (!file) {
+        resultsEl.innerHTML = '<p class="text-red-600">Please upload a PDF file.</p>';
+        return;
+      }
+
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      progressBar.textContent = '0%';
+      progressText.textContent = 'Starting...';
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        try {
+          const typedArray = new Uint8Array(this.result);
+          const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(it => it.str).join(' ');
+            fullText += ' ' + pageText;
+
+            const percent = Math.round((i / pdf.numPages) * 100);
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+            progressText.textContent = `Parsing page ${i} of ${pdf.numPages}`;
+            await new Promise(r => setTimeout(r, 50));
+          }
+
+          // After parsing, run NewsData.io searches on chunks
+          const words = fullText.split(/\s+/);
+          const chunks = [];
+          for (let i = 0; i < Math.min(5, Math.ceil(words.length / 50)); i++) {
+            const start = i * 50;
+            chunks.push(words.slice(start, start + 50).join(' '));
+          }
+          if (chunks.length === 0) chunks.push(words.slice(0, 50).join(' '));
+
+          const allSnippets = [];
+          const allItems = [];
+
+          for (const q of chunks) {
+            const results = await newsDataSearch(q);
+            results.forEach(r => {
+              const snippet = r.description || r.content || '';
+              allItems.push({
+                title: r.title || 'Untitled',
+                link: r.link || r.source_id || '#',
+                snippet
+              });
+              if (snippet) allSnippets.push(snippet);
+            });
+          }
+
+          if (allItems.length === 0) {
+            resultsEl.innerHTML = '<p class="text-gray-600">No matches found.</p>';
+            renderScoreMeter('pdfScoreMeter', 0, 'Plagiarized');
+            progressText.textContent = 'Completed';
+            return;
+          }
+
+          const score = computeOverlapScore(fullText, allSnippets);
+          renderScoreMeter('pdfScoreMeter', score, 'Plagiarized');
+
+          let html = '';
+          allItems.forEach(item => {
+            html += `
+              <div class="border p-4 rounded-lg shadow-sm">
+                <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:underline">${escapeHtml(item.title)}</a>
+                <p class="text-gray-700 mt-2">${escapeHtml(item.snippet)}</p>
+                <div class="mt-2 text-xs text-gray-500">${escapeHtml(item.link)}</div>
+              </div>
+            `;
+          });
+          resultsEl.innerHTML = html;
+          progressText.textContent = 'Completed';
+        } catch (err) {
+          resultsEl.innerHTML = '<p class="text-red-600">Error parsing PDF or fetching results from NewsData.io.</p>';
+          progressText.textContent = 'Error';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Small HTML escape helper
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];
+      });
+    }
+
+    // Initialize default view
+    showSection('home');
+  </script>
+</body>
+</html>
