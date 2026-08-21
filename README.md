@@ -43,6 +43,31 @@ Our plagiarism checker helps ensure originality and proper citation in your work
         
     -   Use Tailwind UI cards or tables for clarity.
 
+## Plagiarism Checker (NewsData.io) — Quick Start
+
+1. Clone or copy project files into a folder.
+
+2. Create .env
+   - Copy .env.example to .env
+   - Set NEWSDATA_API_KEY to your NewsData.io key.
+
+3. Install dependencies
+   npm install
+
+4. Run server (development)
+   npm run dev
+   or
+   npm start
+
+5. Open the frontend
+   - If you placed index.html in public/, open http://localhost:3000/
+   - Or open public/index.html directly in a browser (proxy requires server).
+
+Notes:
+- The frontend calls /api/news?q=... which the server proxies to NewsData.io.
+- If you see CORS errors when calling NewsData directly from the browser, the proxy avoids that.
+- If you hit rate limits, increase CACHE_TTL_MS in server.js or reduce chunk count in frontend.
+- For production, set NEWS_API_KEY in environment variables and deploy server.js to your host.
 
 ## Structure
 
