@@ -34,3 +34,8 @@
     -   List sources with links.
         
     -   Use Tailwind UI cards or tables for clarity.
+
+
+## License
+
+This project is licensed under the MIT License. See the  [LICENSE](https://github.com/sethuaung/Plagiarism-Checker/blob/main/LICENSE)  file for details.
