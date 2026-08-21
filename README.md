@@ -1,5 +1,13 @@
 # Plagiarism Checker (Sample)
 
+##  📝 About This Tool
+
+Our plagiarism checker helps ensure originality and proper citation in your work. It offers two simple ways to detect overlaps with online sources:
+
+-   **User Input Checker** Paste or type text directly into the tool. It quickly scans web sources, highlights matching snippets, and provides a plagiarism score with a clear visual meter.
+    
+-   **PDF Upload Checker** Upload full documents in PDF format. The tool extracts text, shows parsing progress, and checks each section for overlaps. Results include per‑page scores and matched sources.
+
 ## 🛠️ Core Components
 
 -   **Tailwind UI** For styling and layout. You’ll use Tailwind classes to create a clean, responsive interface with input fields, buttons, and result cards.
